@@ -1,4 +1,5 @@
 using Desafio.Api.Common;
+using Desafio.Api.Infra.Data;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -30,21 +31,31 @@ public sealed class CreateUserCommandValidator : AbstractValidator<CreateUserCom
     public CreateUserCommandValidator()
     {
         RuleFor(m => m.Name)
-        .NotEmpty()
-        .Length(6, 250);
+            .NotEmpty()
+            .Length(3, 250);
 
         RuleFor(m => m.Email)
-       .NotEmpty()
-       .EmailAddress();
+            .NotEmpty()
+            .MaximumLength(250)
+            .EmailAddress();
     }
 }
 
 public sealed class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, int>
 {
+    private readonly ApplicationDbContext _context;
+
+    public CreateUserCommandHandler(ApplicationDbContext context) 
+        => _context = context;
+
     public async Task<int> Handle(CreateUserCommand command, CancellationToken cancellationToken)
     {
         var newUser = Domain.Entities.User.Create(command.Name, command.Email);
+        
+        await _context.Users.AddAsync(newUser);
+        
+        await _context.SaveChangesAsync();
 
-        return await Task.FromResult(newUser.Id);
+        return newUser.Id;
     }
 }
