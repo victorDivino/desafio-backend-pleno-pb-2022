@@ -6,17 +6,18 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Desafio.Api.Features.UserManagement;
 
-public sealed class CreateTodoListController : ApiControllerBase
+public sealed class CreateUserController : ApiControllerBase
 {
     [HttpPost("/api/user")]
-    public async Task<ActionResult<int>> Create(CreateUserCommand command, [FromServices] CreateUserCommandValidator validator)
+    public async Task<IActionResult> Create(CreateUserCommand command, [FromServices] CreateUserCommandValidator validator, CancellationToken cancellationToken)
     {
         var validationResult = await validator.ValidateAsync(command);
 
         if (!validationResult.IsValid)
             return BadRequest(validationResult.ToDictionary());
 
-        return await Mediator.Send(command);
+        var result = await Mediator.Send(command, cancellationToken);
+        return Ok(result);
     }
 }
 
@@ -52,9 +53,9 @@ public sealed class CreateUserCommandHandler : IRequestHandler<CreateUserCommand
     {
         var newUser = Domain.Entities.User.Create(command.Name, command.Email);
         
-        await _context.Users.AddAsync(newUser);
+        await _context.Users.AddAsync(newUser, cancellationToken);
         
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
 
         return newUser.Id;
     }

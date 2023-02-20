@@ -4,10 +4,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Desafio.Api.Infra.Data;
 
-public sealed class ApplicationDbContext : DbContext
+public class ApplicationDbContext : DbContext
 {
-    public DbSet<User> Users => Set<User>();
-    
+    public virtual DbSet<User> Users => Set<User>();
+
+    protected ApplicationDbContext() { }
+
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
