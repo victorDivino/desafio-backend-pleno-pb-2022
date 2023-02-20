@@ -1,4 +1,5 @@
 using Desafio.Api.Domain.Entities;
+using Desafio.Api.Features.UserManagement.CreateUser;
 using Desafio.Api.Infra.Data;
 using FluentAssertions;
 using MediatR;
@@ -28,7 +29,7 @@ public sealed class CreateUserTests
         //Arrange
         CreateUserCommand command = new();
         CreateUserCommandValidator validator = new();
-        CreateUserController controller = new();
+        UsersController controller = new();
 
         //Act
         IActionResult result = await controller.Create(command, validator, default);
@@ -41,16 +42,13 @@ public sealed class CreateUserTests
     public async Task Given_Command_And_Valid_When_Create_Should_Returns_Ok()
     {
         //Arrange
-        CreateUserCommand command = new()
-        {
-            Name = "test",
-            Email = "test@domain.com"
-        };
+        CreateUserCommand command = new("test", "test@domain.com");
+        CreatedUserViewModel viewModel = new(default, command.Name, command.Email);
         CreateUserCommandValidator validator = new();
-        CreateUserController controller = new();
+        UsersController controller = new();
         var cancellationToken = CancellationToken.None;
 
-        _mockMediator.Setup(x => x.Send(command, cancellationToken)).ReturnsAsync((int)default);
+        _mockMediator.Setup(x => x.Send(command, cancellationToken)).ReturnsAsync(viewModel);
         _mockServices.Setup(x => x.GetService(typeof(ISender))).Returns(_mockMediator.Object);
 
         controller.ControllerContext.HttpContext = new DefaultHttpContext();
@@ -60,18 +58,16 @@ public sealed class CreateUserTests
         var result = await controller.Create(command, validator, default);
 
         //Assert
-        result.Should().BeOfType<OkObjectResult>();
+        result.Should().BeOfType<ObjectResult>();
+        result.As<ObjectResult>().StatusCode.Should().Be(StatusCodes.Status201Created);
+        result.As<ObjectResult>().Value.Should().Be(viewModel);
     }
 
     [Fact]
     public async Task Given_Command_And_Valid_When_Handle_Should_Create_User()
     {
         //Arrange
-        CreateUserCommand command = new()
-        {
-            Name = "test",
-            Email = "test@domain.com"
-        };
+        CreateUserCommand command = new("test", "test@domain.com");
         var cancellationToken = CancellationToken.None;
         CreateUserCommandHandler handler = new(_mockContext.Object);
 

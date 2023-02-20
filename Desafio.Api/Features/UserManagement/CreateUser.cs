@@ -4,12 +4,15 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Desafio.Api.Features.UserManagement;
+namespace Desafio.Api.Features.UserManagement.CreateUser;
 
-public sealed class CreateUserController : ApiControllerBase
+public sealed class UsersController : ApiControllerBase
 {
-    [HttpPost("/api/user")]
-    public async Task<IActionResult> Create(CreateUserCommand command, [FromServices] CreateUserCommandValidator validator, CancellationToken cancellationToken)
+    [HttpPost]
+    public async Task<IActionResult> Create(
+        CreateUserCommand command,
+        [FromServices] CreateUserCommandValidator validator,
+        CancellationToken cancellationToken)
     {
         var validationResult = await validator.ValidateAsync(command);
 
@@ -17,15 +20,23 @@ public sealed class CreateUserController : ApiControllerBase
             return BadRequest(validationResult.ToDictionary());
 
         var result = await Mediator.Send(command, cancellationToken);
-        return Ok(result);
+
+        return new ObjectResult(result)
+        {
+            StatusCode = StatusCodes.Status201Created
+        };
     }
 }
 
-public record struct CreateUserCommand : IRequest<int>
-{
-    public string Name { get; init; }
-    public string Email { get; init; }
-}
+public readonly record struct CreatedUserViewModel(
+    int Id, 
+    string Name, 
+    string Email);
+
+public readonly record struct CreateUserCommand(
+    string Name, 
+    string Email) 
+    : IRequest<CreatedUserViewModel>;
 
 public sealed class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
 {
@@ -42,21 +53,21 @@ public sealed class CreateUserCommandValidator : AbstractValidator<CreateUserCom
     }
 }
 
-public sealed class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, int>
+public sealed class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, CreatedUserViewModel>
 {
     private readonly ApplicationDbContext _context;
 
-    public CreateUserCommandHandler(ApplicationDbContext context) 
+    public CreateUserCommandHandler(ApplicationDbContext context)
         => _context = context;
 
-    public async Task<int> Handle(CreateUserCommand command, CancellationToken cancellationToken)
+    public async Task<CreatedUserViewModel> Handle(CreateUserCommand command, CancellationToken cancellationToken)
     {
         var newUser = Domain.Entities.User.Create(command.Name, command.Email);
-        
+
         await _context.Users.AddAsync(newUser, cancellationToken);
-        
+
         await _context.SaveChangesAsync(cancellationToken);
 
-        return newUser.Id;
+        return new CreatedUserViewModel(newUser.Id, newUser.Name, newUser.Email);
     }
 }
