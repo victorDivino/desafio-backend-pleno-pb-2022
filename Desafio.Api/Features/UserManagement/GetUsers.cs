@@ -19,9 +19,9 @@ public sealed class UsersController : ApiControllerBase
         if (!validationResult.IsValid)
             return BadRequest(validationResult.ToDictionary());
 
-        var usersViewModel = await Mediator.Send(query, cancellationToken); 
-        
-        if(!usersViewModel.Any()) 
+        var usersViewModel = await Mediator.Send(query, cancellationToken);
+
+        if (!usersViewModel.Any())
             return NoContent();
 
         return Ok(usersViewModel);
@@ -30,13 +30,13 @@ public sealed class UsersController : ApiControllerBase
 
 public readonly record struct GetUsersViewModel(
     int Id,
-    string Name, 
+    string Name,
     string Email);
 
 public record class GetUsersQuery(
     int? Id,
-    string? Name, 
-    string? Email) 
+    string? Name,
+    string? Email)
     : IRequest<IEnumerable<GetUsersViewModel>>;
 
 public sealed class GetUsersQueryValidator : AbstractValidator<GetUsersQuery>
@@ -61,8 +61,8 @@ public sealed class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, IEnume
 
     public Task<IEnumerable<GetUsersViewModel>> Handle(GetUsersQuery query, CancellationToken cancellationToken)
     {
-        var users = _context.Users.AsQueryable();
-        
+        var users = from user in _context.Users select user;
+
         if (query.Id.GetValueOrDefault() > 0)
             users = users.Where(u => u.Id == query.Id);
 
@@ -72,7 +72,7 @@ public sealed class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, IEnume
         if (!string.IsNullOrEmpty(query.Email))
             users = users.Where(u => u.Email.Equals(query.Email, StringComparison.InvariantCultureIgnoreCase));
 
-        var result = users.Select(u => new GetUsersViewModel(u.Id, u.Name, u.Email)) ?? Enumerable.Empty<GetUsersViewModel>();
+        var result = users.Select(u => new GetUsersViewModel(u.Id, u.Name, u.Email)).AsEnumerable();
 
         return Task.FromResult(result);
     }

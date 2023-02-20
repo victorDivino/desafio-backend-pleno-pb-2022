@@ -69,9 +69,8 @@ public sealed class CreateUserTests
         //Arrange
         CreateUserCommand command = new("test", "test@domain.com");
         var cancellationToken = CancellationToken.None;
-        CreateUserCommandHandler handler = new(_mockContext.Object);
-
         _mockContext.Setup(x => x.Users).ReturnsDbSet(Enumerable.Empty<User>());
+        CreateUserCommandHandler handler = new(_mockContext.Object);
 
         //Act
         await handler.Handle(command, cancellationToken);
