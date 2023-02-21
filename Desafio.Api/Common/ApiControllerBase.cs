@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Desafio.Api.Common;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public abstract class ApiControllerBase : ControllerBase
 {
     private ISender? _mediator;

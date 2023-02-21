@@ -22,30 +22,30 @@ public sealed class UsersController : ApiControllerBase
 
         var result = await Mediator.Send(command, cancellationToken);
 
-        if(!result.IsSuccess)
-            return BadRequest(result.Exception);
+        if (!result.IsSuccess)
+            return BadRequest(result.Exception.Message);
 
         return Ok(result.Value);
     }
 }
 
 public readonly record struct UpdateUserViewModel(
-    int Id, 
-    string Name, 
+    int Id,
+    string Name,
     string Email);
 
 public readonly record struct UpdateUserCommand(
     int Id,
-    string Name, 
-    string Email) 
+    string Name,
+    string Email)
     : IRequest<Result<UpdateUserViewModel>>;
 
 public sealed class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
 {
     public UpdateUserCommandValidator()
     {
-         RuleFor(m => m.Id)
-            .NotEmpty();
+        RuleFor(m => m.Id)
+           .NotEmpty();
 
         RuleFor(m => m.Name)
             .NotEmpty()
@@ -68,15 +68,15 @@ public sealed class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand
     public async Task<Result<UpdateUserViewModel>> Handle(UpdateUserCommand command, CancellationToken cancellationToken)
     {
         var user = _context.Users.FirstOrDefault(x => x.Id == command.Id);
-        
-        if(user is null)
+
+        if (user is null)
             return UpdateUserExceptions.NotFound;
 
         var hasOtherUserWithEmail = _context.Users.Any(
             x => x.Id != user.Id &&
              x.Email.Equals(command.Email, StringComparison.InvariantCultureIgnoreCase));
 
-        if(hasOtherUserWithEmail)
+        if (hasOtherUserWithEmail)
             return UpdateUserExceptions.EmailDuplicate;
 
         user.Update(command.Name, command.Email);
