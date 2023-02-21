@@ -1,5 +1,4 @@
 using Desafio.Api.Domain.Entities;
-using Desafio.Api.Features.UserManagement.CreateUser;
 using Desafio.Api.Infra.Data;
 using FluentAssertions;
 using MediatR;
@@ -8,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Moq.EntityFrameworkCore;
 
-namespace Desafio.Api.Features.UserManagement;
+namespace Desafio.Api.Features.UserManagement.CreateUser;
 
 public sealed class CreateUserTests
 {

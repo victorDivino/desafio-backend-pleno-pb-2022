@@ -17,7 +17,7 @@ public sealed class GetUsersTests
     public async Task Given_A_Users_List_When_Get_User_By_Email_Should_Returns_Only_One_User_With_The_Same_Email()
     {
         //Arrange
-        GetUsersQuery query = new(null, null, "admin@domian.com");
+        GetUsersQuery query = new(null, "admin@domian.com");
 
         var users = new List<User>()
         {

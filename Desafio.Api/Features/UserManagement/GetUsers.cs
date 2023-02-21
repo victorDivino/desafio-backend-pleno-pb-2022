@@ -33,19 +33,12 @@ public readonly record struct GetUsersViewModel(
     string Name,
     string Email);
 
-public record class GetUsersQuery(
-    int? Id,
-    string? Name,
-    string? Email)
-    : IRequest<IEnumerable<GetUsersViewModel>>;
+public record class GetUsersQuery(int? Id, string? Email) : IRequest<IEnumerable<GetUsersViewModel>>;
 
 public sealed class GetUsersQueryValidator : AbstractValidator<GetUsersQuery>
 {
     public GetUsersQueryValidator()
     {
-        RuleFor(m => m.Name)
-            .MaximumLength(250);
-
         RuleFor(m => m.Email)
             .MaximumLength(250)
             .EmailAddress();
@@ -65,9 +58,6 @@ public sealed class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, IEnume
 
         if (query.Id.GetValueOrDefault() > 0)
             users = users.Where(u => u.Id == query.Id);
-
-        if (!string.IsNullOrEmpty(query.Name))
-            users = users.Where(u => u.Name.Equals(query.Name, StringComparison.InvariantCultureIgnoreCase));
 
         if (!string.IsNullOrEmpty(query.Email))
             users = users.Where(u => u.Email.Equals(query.Email, StringComparison.InvariantCultureIgnoreCase));
