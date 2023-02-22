@@ -3,6 +3,7 @@ using Desafio.Api.Infra.Data;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Desafio.Api.Features.UserManagement.GetUsers;
 
@@ -60,7 +61,7 @@ public sealed class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, IEnume
             users = users.Where(u => u.Id == query.Id);
 
         if (!string.IsNullOrEmpty(query.Email))
-            users = users.Where(u => u.Email.Equals(query.Email, StringComparison.InvariantCultureIgnoreCase));
+            users = users.Where(u => u.Email.ToLower() == query.Email.Trim().ToLower());
 
         var result = users.Select(u => new GetUsersViewModel(u.Id, u.Name, u.Email)).AsEnumerable();
 

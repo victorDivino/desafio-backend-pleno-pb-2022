@@ -74,7 +74,7 @@ public sealed class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand
 
         var hasOtherUserWithEmail = _context.Users.Any(
             x => x.Id != user.Id &&
-             x.Email.Equals(command.Email, StringComparison.InvariantCultureIgnoreCase));
+            x.Email.ToLower() == command.Email.Trim().ToLower());
 
         if (hasOtherUserWithEmail)
             return UpdateUserExceptions.EmailDuplicate;
